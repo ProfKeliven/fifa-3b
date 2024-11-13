@@ -29,6 +29,66 @@ app.post('./register', async (req, res) => {
     }
 })
 
+app.post('./participar_campeonato' , async (req, res) => {
+    const {idUsuario} = req.body; //id do usuario que vai participar
+
+    try{
+        await pool.query(
+            'UPDATE usuarios SET campeonatos_participados = campeonatos_participados + 1 WHERE id = $1',
+            [idUsuario] 
+        )
+
+        res.status(200).send('Participação registrada')
+    }catch (err){
+        console.error(err.message)
+        res.status(500).send('Erro de servidor')
+    }
+})
+
+//consulta quantidade de campeonatos que o usuario participou
+app.get('/campeonatos_partipados/:id' ,async (req,res) =>{
+    const {idUsuario} = req.params.id
+
+    try{
+        const resultado = await pool.query(
+            'SELECT  campeonatos_participados FROM usuarios where id = $1',
+            [idUsuario]
+        )
+
+        if(resultado.rows.length === 0){
+            return res.status(404).send('usuário não encontrado')
+        }
+
+        res.json({totalCampeonatos: resultado.rows[0].campeonatos_participados}) 
+    }catch (err){
+        console.error(err.message)
+        res.status(500).send('Erro de servidor')
+    }
+})
+
+app.post('/login', async (req, res) =>{
+    const {email, senha } = req.body
+
+    try{
+        //buscar o usuario pelo email
+        const resultado = await pool.query('SELECT * FROM usuarios WHERE email = $1', [email])
+        const usuario = resultado.rows[0]
+        if(!usuario){
+            return res.status(400).send('Usuário não encontrado')
+        }
+    
+        const verificaSenha = await bcrypt.compare(senha, usuario.senha)
+        if(!verificaSenha){
+            return res.status(400).send('Senha incorreta')
+        }
+
+        res.send('Login efetuado')
+    }catch (err){
+        console.error(err.message)
+        res.status(500).send('Erro de servidor')
+    }
+})
+
 app.listen(port, () => {
     console.log(`Servidor rodando em http://localhost:${port}`)//crase
 })
