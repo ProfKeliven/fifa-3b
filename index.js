@@ -4,10 +4,16 @@ const app = express()
 const port = 3000
 const bcrypt = require('bcrypt')
 const pool = require('./db') //arquivo do banco de dados
+const cors = require('cors')
 
+app.use(cors()) //permite requisicoes externas
 app.use(express.json())
 
-app.post('./register', async (req, res) => {
+app.get('/', (req, res) => {
+    res.send('Bem-vindo ao FIFA!')
+})
+
+app.post('/register', async (req, res) => {
     const {usuario, email, senha} = req.body
 
     try {
@@ -29,7 +35,7 @@ app.post('./register', async (req, res) => {
     }
 })
 
-app.post('./participar_campeonato' , async (req, res) => {
+app.post('/participar_campeonato' , async (req, res) => {
     const {idUsuario} = req.body; //id do usuario que vai participar
 
     try{
